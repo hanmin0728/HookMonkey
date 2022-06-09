@@ -62,7 +62,7 @@ public class Enemy : MonoBehaviour
         Debug.Log("Die Animation finished");
 
         //몬스터 죽음 이벤트 
-        Instantiate(effectDie, gorilaTransform.position, Quaternion.identity);
+        Instantiate(effectDie, gorilaTransform.position + new Vector3(0f, 3f, 0f), Quaternion.identity);
 
         //몬스터 삭제 
         Destroy(gameObject);

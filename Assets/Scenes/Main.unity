@@ -456,7 +456,7 @@ MonoBehaviour:
   hp: 31
   AtkRange: 1.5
   effectDamage: {fileID: 1892078723244562, guid: 46876a2780737ec45a19d62f88e5ce56, type: 3}
-  effectDie: {fileID: 100000, guid: f06e78284f831ae469c74624ab5d513b, type: 3}
+  effectDie: {fileID: 100004, guid: 7867af58a6ec48846ae807eb4022fbaa, type: 3}
 --- !u!111 &368590339
 Animation:
   m_ObjectHideFlags: 0
