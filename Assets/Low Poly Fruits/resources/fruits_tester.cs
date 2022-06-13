@@ -5,7 +5,6 @@ using UnityEngine;
 public class fruits_tester : MonoBehaviour {
 
 	public GameObject[] fruits;
-	// Use this for initialization
 	void Start () 
 	{
 		
