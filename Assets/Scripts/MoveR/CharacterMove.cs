@@ -26,7 +26,7 @@ public class CharacterMove : MonoBehaviour
 
     private bool _isRun = false;
 
-    public UnityEvent<float> OnChangeVelocity;
+    //public UnityEvent<float> OnChangeVelocity;
 
 
     private void Awake()
