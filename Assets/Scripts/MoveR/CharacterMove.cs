@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.Events;
+using Random = UnityEngine.Random;
 
 public class CharacterMove : MonoBehaviour
 {
@@ -17,6 +19,7 @@ public class CharacterMove : MonoBehaviour
     [SerializeField] private float _acceleration = 50f;
     [SerializeField] private float _deAcceleration = 50f;
 
+    // public UnityEvent<float> OnVelocityChange; //플레이어 속도가 바뀔때 실행될 이벤트
 
     private Rigidbody _rigid;
     private Collider _collider;
@@ -26,15 +29,36 @@ public class CharacterMove : MonoBehaviour
 
     private bool _isRun = false;
 
-    //public UnityEvent<float> OnChangeVelocity;
+    Vector3 posTarget = Vector3.zero;
+
+    private Animator _animator;
+
+    private ItemController currnetItem;
+
+    [SerializeField]
+    private int durability = 0;
+
+    [SerializeField]
+    private LayerMask itemLayerMask;
+
+    [SerializeField]
+    private Text _pickTxt;
+
+    [Header("전투관련")]
+    public TrailRenderer AtkTrailRender = null;
+    public CapsuleCollider AtkCapsuleCollider = null;
 
 
     private void Awake()
     {
-        // 게임 출시때 꼭 주석 풀기
-        //Cursor.lockState = CursorLockMode.Locked;
         _rigid = GetComponent<Rigidbody>();
         _collider = GetComponent<Collider>();
+        _animator = GetComponent<Animator>();
+        currnetItem = FindObjectOfType<ItemController>();
+    }
+    private void Start()
+    {
+        durability = currnetItem.item.durability;
     }
 
     private void Update()
@@ -47,11 +71,13 @@ public class CharacterMove : MonoBehaviour
         {
             Jump();
         }
+        UpGround();
+        Atk();
+        PickItem();
     }
 
     private void FixedUpdate()
     {
-        // OnChangeVelocity?.Invoke(_currentVelocity);
         Vector3 velocity = _currentDir;
         velocity.x *= _currentVelocity;
         velocity.y = _rigid.velocity.y;
@@ -59,7 +85,6 @@ public class CharacterMove : MonoBehaviour
 
         _rigid.velocity = velocity;
         ChangeBody();
-
     }
 
     public void MovementInput(Vector3 movementInput)
@@ -94,11 +119,13 @@ public class CharacterMove : MonoBehaviour
         if (movementInput.sqrMagnitude > 0f)
         {
             _currentVelocity += _acceleration * Time.deltaTime;
+            _animator.SetBool("Walk", true);
         }
 
         else
         {
             _currentVelocity -= _deAcceleration * Time.deltaTime;
+            _animator.SetBool("Walk", false);
         }
 
         return Mathf.Clamp(_currentVelocity, 0f, _isRun ? _runMaxSpeed : _moveMaxSpeed);
@@ -110,7 +137,6 @@ public class CharacterMove : MonoBehaviour
         {
             Vector3 newForward = _rigid.velocity;
             newForward.y = 0f;
-            Debug.Log(newForward);
             transform.forward = Vector3.Lerp(transform.forward, newForward.normalized, _turnSpeed * Time.deltaTime);
         }
     }
@@ -136,6 +162,26 @@ public class CharacterMove : MonoBehaviour
         }
     }
 
+    void UpGround()
+    {
+
+        posTarget = new Vector3(transform.position.x + Random.Range(-10f, 10f),
+                    transform.position.y + 1000f,
+                    transform.position.z + Random.Range(-10f, 10f)
+                    );
+
+        Ray ray = new Ray(posTarget, Vector3.down);
+
+        RaycastHit infoRayCast = new RaycastHit();
+        Debug.DrawRay(posTarget, Vector3.down * 2f, Color.red);
+
+        if (Physics.Raycast(ray, out infoRayCast, Mathf.Infinity) == true)
+        {
+            // 임의의 목표 벡터에 높이 값 추가
+            posTarget.y = infoRayCast.point.y;
+        }
+    }
+
 
     bool IsGround()
     {
@@ -144,14 +190,89 @@ public class CharacterMove : MonoBehaviour
         return Physics.OverlapBox(pos, size, Quaternion.identity).Length > 1;
     }
 
+    public void Atk()
+    {
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            StartCoroutine(Attack());
+            if (durability <= 0)
+            {
+                Debug.Log("무기를 교체하세요 적에게 데미지를 입히실수 없습니다");
+            }
+            Debug.Log(durability);
+        }
+    }
+    IEnumerator Attack()
+    {
+        _animator.SetTrigger("Attack");
+        durability--;
+
+        AtkTrailRender.enabled = true;
+        AtkCapsuleCollider.enabled = true;
+        yield return new WaitForSeconds(3f);
+        AtkTrailRender.enabled = false;
+        AtkCapsuleCollider.enabled = false;
+    }
+    public void ChangeWeapon()
+    {
+        Debug.Log("뚜뚜뚜");
+        durability = 15;
+    }
+    public void PickItem()
+    {
+        //Collider[] cubesInsideZone;
+
+        //cubesInsideZone = Physics.OverlapSphere(this.transform.position, 2f);
+
+        //foreach (var cube in cubesInsideZone)
+        //{
+        //    Debug.Log(cube);
+        //    if (cube == null)
+        //    {
+        //        return;
+        //    }
+        //    _pickTxt.gameObject.SetActive(true);
+        //    if (Input.GetKeyDown(KeyCode.F))
+        //    {
+        //        ItemPickUp obj = cube.GetComponent<ItemPickUp>();
+        //        obj.PickUp();
+        //        Debug.Log(obj);
+
+        //        //Debug.Log("아이템 획득");
+        //    }
+
+        //}
+
+        RaycastHit raycastHit;
+        Ray ray = new Ray(transform.position, transform.forward);
+        Debug.DrawRay(transform.position, transform.forward * 5, Color.red);
+
+        if (Physics.Raycast(ray, out raycastHit, 5f, itemLayerMask))
+        {
+            _pickTxt.gameObject.SetActive(true);
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                ItemPickUp obj = raycastHit.collider.GetComponent<ItemPickUp>();
+                Debug.Log(obj);
+                obj.PickUp();
+                Debug.Log("아이템 획득");
+            }
+        }
+        else
+        {
+            _pickTxt.gameObject.SetActive(false);
+        }
+    }
+
     private void OnDrawGizmos()
     {
-        if (_collider == null) _collider = GetComponent<Collider>();
+        Gizmos.DrawWireSphere(this.transform.position, 2f);
+        //if (_collider == null) _collider = GetComponent<Collider>();
 
-        Gizmos.color = Color.red;
-        Vector3 pos = new Vector3(_collider.bounds.center.x, _collider.bounds.min.y, _collider.bounds.center.z);
-        Vector3 size = Vector3.one * 0.1f;
-        Gizmos.DrawWireCube(pos, size);
+        //Gizmos.color = Color.red;
+        //Vector3 pos = new Vector3(_collider.bounds.center.x, _collider.bounds.min.y, _collider.bounds.center.z);
+        //Vector3 size = Vector3.one * 0.1f;
+        //Gizmos.DrawWireCube(pos, size);
     }
 
 }

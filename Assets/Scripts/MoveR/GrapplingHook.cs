@@ -18,11 +18,11 @@ public class GrapplingHook : MonoBehaviour
     }
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetKeyDown(KeyCode.LeftShift))
         {
             StartGrapple();
         }
-        else if (Input.GetMouseButtonUp(0))
+        else if(Input.GetKeyUp(KeyCode.LeftShift))
         {
             StopGrapple();
         }
@@ -36,25 +36,29 @@ public class GrapplingHook : MonoBehaviour
     {
         RaycastHit hit;
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray,out hit, maxDistance, WhatIsGrappleable))
+        if (Input.GetKeyDown(KeyCode.LeftShift))
         {
-            print("hit");
-            grapplePoint = hit.point;
-            joint = player.gameObject.AddComponent<SpringJoint>();
-            joint.autoConfigureConnectedAnchor = false;
-            joint.connectedAnchor = grapplePoint;
+            if (Physics.Raycast(ray, out hit, maxDistance, WhatIsGrappleable))
+            {
+                print("hit");
+                grapplePoint = hit.point;
+                joint = player.gameObject.AddComponent<SpringJoint>();
+                joint.autoConfigureConnectedAnchor = false;
+                joint.connectedAnchor = grapplePoint;
 
-            float distanceFromPoint = Vector3.Distance(player.position, grapplePoint);
+                float distanceFromPoint = Vector3.Distance(player.position, grapplePoint);
 
-            joint.maxDistance = distanceFromPoint * 0.8f;
-            joint.minDistance = distanceFromPoint * 0.25f;
+                joint.maxDistance = distanceFromPoint * 0.8f;
+                joint.minDistance = distanceFromPoint * 0.25f;
 
-            joint.spring = 4.5f;
-            joint.damper = 7f;
-            joint.massScale = 4.5f;
+                joint.spring = 4.5f;
+                joint.damper = 7f;
+                joint.massScale = 4.5f;
 
-            line.positionCount = 2;
+                line.positionCount = 2;
+            }
         }
+      
     }
     void DrawRope()
     {

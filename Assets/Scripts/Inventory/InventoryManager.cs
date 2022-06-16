@@ -41,7 +41,7 @@ public class InventoryManager : MonoBehaviour
             var itemIcon = obj.transform.Find("ItemIcon").GetComponent<Image>();
             var removeButton = obj.transform.Find("RemoveButton").GetComponent<Button>();
 
-            itemName.text = item.itemName;
+            itemName.text = item.itemNaming;
             itemIcon.sprite = item.icon;
 
             if (EnableRemove.isOn)

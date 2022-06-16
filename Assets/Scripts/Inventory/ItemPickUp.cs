@@ -5,7 +5,7 @@ using UnityEngine;
 public class ItemPickUp : MonoBehaviour
 {
     public Item item;
-    void PickUp()
+    public void PickUp()
     {
         InventoryManager.Instance.Add(item);
         Destroy(gameObject);

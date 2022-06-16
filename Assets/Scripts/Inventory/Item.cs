@@ -6,10 +6,8 @@ using UnityEngine;
 public class Item : ScriptableObject
 {
     public int id;
-    public string itemName;
+    public string itemNaming;
     public int value;
     public Sprite icon;
     public int durability; // ³»±¸µµ
-
-
 }
