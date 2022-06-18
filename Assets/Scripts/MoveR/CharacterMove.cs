@@ -48,7 +48,10 @@ public class CharacterMove : MonoBehaviour
     public TrailRenderer AtkTrailRender = null;
     public CapsuleCollider AtkCapsuleCollider = null;
 
-
+    public bool isHook;
+    public bool isJump;
+    public bool isAttack;
+    public int damage = 1;
     private void Awake()
     {
         _rigid = GetComponent<Rigidbody>();
@@ -67,9 +70,14 @@ public class CharacterMove : MonoBehaviour
         float v = Input.GetAxisRaw("Vertical");
 
         MovementInput(new Vector3(h, 0f, v).normalized);
+
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            Jump();
+            isJump = true;
+            if (isJump)
+            {
+                Jump();
+            }
         }
         UpGround();
         Atk();
@@ -84,6 +92,8 @@ public class CharacterMove : MonoBehaviour
         velocity.z *= _currentVelocity;
 
         _rigid.velocity = velocity;
+        //_rigid.AddForce(velocity, ForceMode.Acceleration);
+
         ChangeBody();
     }
 
@@ -149,16 +159,13 @@ public class CharacterMove : MonoBehaviour
         transform.forward = forward;
     }
 
-    public void ChangeRunState(bool state)
-    {
-        _isRun = state;
-    }
 
     public void Jump()
     {
         if (IsGround())
         {
             _rigid.AddForce(Vector3.up * _jumpPower, ForceMode.Impulse);
+            isJump = false;
         }
     }
 
@@ -173,31 +180,57 @@ public class CharacterMove : MonoBehaviour
         Ray ray = new Ray(posTarget, Vector3.down);
 
         RaycastHit infoRayCast = new RaycastHit();
-        Debug.DrawRay(posTarget, Vector3.down * 2f, Color.red);
+        //Debug.DrawRay(posTarget, Vector3.down * 2f, Color.red);
 
         if (Physics.Raycast(ray, out infoRayCast, Mathf.Infinity) == true)
         {
-            // 임의의 목표 벡터에 높이 값 추가
             posTarget.y = infoRayCast.point.y;
         }
     }
 
+    private void OnDrawGizmos()
+    {
+       // Gizmos.DrawWireSphere(this.transform.position, 2f);
+        //if (_collider == null) _collider = GetComponent<Collider>();
 
+        //Gizmos.color = Color.red;
+        //Vector3 pos = new Vector3(_collider.bounds.center.x, _collider.bounds.min.y, _collider.bounds.center.z);
+        //Vector3 size = Vector3.one * 0.1f;
+        //Gizmos.DrawWireCube(pos, size);
+    }
     bool IsGround()
     {
         Vector3 pos = new Vector3(_collider.bounds.center.x, _collider.bounds.min.y, _collider.bounds.center.z);
-        Vector3 size = _collider.bounds.size * 0.5f;
-        return Physics.OverlapBox(pos, size, Quaternion.identity).Length > 1;
+        Vector3 size = _collider.bounds.size * 0.2f;
+        Collider[] collider = Physics.OverlapBox(pos, size, Quaternion.identity);
+        foreach (var col in collider)
+        {
+            if (col.CompareTag("Ground"))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void Atk()
     {
+        if (isAttack)
+        {
+            return;
+        }
         if (Input.GetKeyDown(KeyCode.C))
         {
+            isAttack = true;
             StartCoroutine(Attack());
             if (durability <= 0)
             {
+                damage = 0;
                 Debug.Log("무기를 교체하세요 적에게 데미지를 입히실수 없습니다");
+            }
+            else
+            {
+                damage = 1;
             }
             Debug.Log(durability);
         }
@@ -206,12 +239,13 @@ public class CharacterMove : MonoBehaviour
     {
         _animator.SetTrigger("Attack");
         durability--;
-
+        isAttack = true;
         AtkTrailRender.enabled = true;
         AtkCapsuleCollider.enabled = true;
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(2f);
         AtkTrailRender.enabled = false;
         AtkCapsuleCollider.enabled = false;
+        isAttack = false;
     }
     public void ChangeWeapon()
     {
@@ -220,32 +254,9 @@ public class CharacterMove : MonoBehaviour
     }
     public void PickItem()
     {
-        //Collider[] cubesInsideZone;
-
-        //cubesInsideZone = Physics.OverlapSphere(this.transform.position, 2f);
-
-        //foreach (var cube in cubesInsideZone)
-        //{
-        //    Debug.Log(cube);
-        //    if (cube == null)
-        //    {
-        //        return;
-        //    }
-        //    _pickTxt.gameObject.SetActive(true);
-        //    if (Input.GetKeyDown(KeyCode.F))
-        //    {
-        //        ItemPickUp obj = cube.GetComponent<ItemPickUp>();
-        //        obj.PickUp();
-        //        Debug.Log(obj);
-
-        //        //Debug.Log("아이템 획득");
-        //    }
-
-        //}
-
         RaycastHit raycastHit;
         Ray ray = new Ray(transform.position, transform.forward);
-        Debug.DrawRay(transform.position, transform.forward * 5, Color.red);
+        //Debug.DrawRay(transform.position, transform.forward * 5, Color.red);
 
         if (Physics.Raycast(ray, out raycastHit, 5f, itemLayerMask))
         {
@@ -264,15 +275,6 @@ public class CharacterMove : MonoBehaviour
         }
     }
 
-    private void OnDrawGizmos()
-    {
-        Gizmos.DrawWireSphere(this.transform.position, 2f);
-        //if (_collider == null) _collider = GetComponent<Collider>();
-
-        //Gizmos.color = Color.red;
-        //Vector3 pos = new Vector3(_collider.bounds.center.x, _collider.bounds.min.y, _collider.bounds.center.z);
-        //Vector3 size = Vector3.one * 0.1f;
-        //Gizmos.DrawWireCube(pos, size);
-    }
+    
 
 }

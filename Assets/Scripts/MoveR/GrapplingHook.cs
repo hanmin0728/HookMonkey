@@ -5,13 +5,12 @@ using UnityEngine;
 
 public class GrapplingHook : MonoBehaviour
 {
-    private LineRenderer line;
-    private Vector3 grapplePoint;
+    public float maxDistance = 10000f;
+    public LayerMask WhatIsGrappleable;
     [SerializeField]
-    private LayerMask WhatIsGrappleable;
-    private float maxDistance = 100f;
-    public Transform gunTip, camera, player;
-    private SpringJoint joint;
+    ForceMode forceMode;  
+    public Transform target;
+    LineRenderer line;
     private void Awake()
     {
         line = GetComponent<LineRenderer>();
@@ -20,58 +19,28 @@ public class GrapplingHook : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.LeftShift))
         {
-            StartGrapple();
-        }
-        else if(Input.GetKeyUp(KeyCode.LeftShift))
-        {
-            StopGrapple();
+            Grap();
         }
     }
-    private void LateUpdate()
+    private void FixedUpdate()
     {
-        DrawRope();
+        line.SetPosition(0, transform.position);
+        line.SetPosition(1, target.position);
     }
-
-    private void StartGrapple()
+    public void Grap()
     {
         RaycastHit hit;
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Input.GetKeyDown(KeyCode.LeftShift))
+        Debug.DrawRay(Camera.main.transform.position, Camera.main.transform.forward * 1000f, Color.black, maxDistance);
+
+        if (Physics.Raycast(Camera.main.transform.position, Camera.main.transform.forward, out hit, Mathf.Infinity, WhatIsGrappleable))
         {
-            if (Physics.Raycast(ray, out hit, maxDistance, WhatIsGrappleable))
-            {
-                print("hit");
-                grapplePoint = hit.point;
-                joint = player.gameObject.AddComponent<SpringJoint>();
-                joint.autoConfigureConnectedAnchor = false;
-                joint.connectedAnchor = grapplePoint;
-
-                float distanceFromPoint = Vector3.Distance(player.position, grapplePoint);
-
-                joint.maxDistance = distanceFromPoint * 0.8f;
-                joint.minDistance = distanceFromPoint * 0.25f;
-
-                joint.spring = 4.5f;
-                joint.damper = 7f;
-                joint.massScale = 4.5f;
-
-                line.positionCount = 2;
-            }
+            line.positionCount = 2;
         }
-      
-    }
-    void DrawRope()
-    {
-        if (line.positionCount == 0)
-            return;
-        //print(gunTip.position + " " + grapplePoint);
-        line.SetPosition(0, gunTip.position);
-        line.SetPosition(1, grapplePoint);
-    }
-    private void StopGrapple()
-    {
-        line.positionCount = 0;
-        Destroy(joint);
+        gameObject.SetActive(true);
+        target.transform.position = hit.point;
+        transform.LookAt(target);
+        transform.localScale = new Vector3(1, 1, 1);
     }
 
 }
