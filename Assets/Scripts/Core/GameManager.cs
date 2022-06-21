@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class GameManager : MonoSingleton<GameManager>
 {
+
+    [SerializeField] private Transform player;
+    public Transform Player { get { return player; } }
+
+
     private float timeScale = 1f;
 
     public static float TimeScale

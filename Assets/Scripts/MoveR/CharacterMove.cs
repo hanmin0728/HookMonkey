@@ -8,6 +8,9 @@ using Random = UnityEngine.Random;
 
 public class CharacterMove : MonoBehaviour
 {
+    [SerializeField]
+    private Transform debughitpoint;
+
     [SerializeField] private float _moveMaxSpeed = 3f;
     [SerializeField] private float _runMaxSpeed = 10f;
     [SerializeField] private float _rotateMoveSpeed = 80f;
@@ -19,7 +22,6 @@ public class CharacterMove : MonoBehaviour
     [SerializeField] private float _acceleration = 50f;
     [SerializeField] private float _deAcceleration = 50f;
 
-    // public UnityEvent<float> OnVelocityChange; //플레이어 속도가 바뀔때 실행될 이벤트
 
     private Rigidbody _rigid;
     private Collider _collider;
@@ -48,16 +50,31 @@ public class CharacterMove : MonoBehaviour
     public TrailRenderer AtkTrailRender = null;
     public CapsuleCollider AtkCapsuleCollider = null;
 
+    [SerializeField]
+    private GameObject banana;
+
     public bool isHook;
     public bool isJump;
     public bool isAttack;
     public int damage = 1;
+
+    private Vector3 hookShotPosition;
+    private State state;
+
+    private enum State
+    {
+        Normal,
+        HookShotFlyingPlayer
+    }
+
     private void Awake()
     {
         _rigid = GetComponent<Rigidbody>();
         _collider = GetComponent<Collider>();
         _animator = GetComponent<Animator>();
         currnetItem = FindObjectOfType<ItemController>();
+        state = State.Normal;
+        Cursor.lockState = CursorLockMode.Locked;
     }
     private void Start()
     {
@@ -68,9 +85,21 @@ public class CharacterMove : MonoBehaviour
     {
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
-
-        MovementInput(new Vector3(h, 0f, v).normalized);
-
+        switch (state)
+        {
+            case State.Normal:
+               // HandleCharacterLock();
+                HandleHookshotStart();
+                MovementInput(new Vector3(h, 0f, v).normalized);
+                //   HandleCharacterMovenet();
+                break;
+            case State.HookShotFlyingPlayer:
+              //  HandleCharacterLock();
+                HandleHookshotMovement();
+                break;
+            default:
+                break;
+        }
         if (Input.GetKeyDown(KeyCode.Space))
         {
             isJump = true;
@@ -101,7 +130,6 @@ public class CharacterMove : MonoBehaviour
     {
         if (movementInput.sqrMagnitude > 0)
         {
-            // Define static 으로 만들기
             Vector3 forward = Camera.main.transform.TransformDirection(Vector3.forward);
             forward.y = 0f;
 
@@ -159,7 +187,6 @@ public class CharacterMove : MonoBehaviour
         transform.forward = forward;
     }
 
-
     public void Jump()
     {
         if (IsGround())
@@ -171,7 +198,6 @@ public class CharacterMove : MonoBehaviour
 
     void UpGround()
     {
-
         posTarget = new Vector3(transform.position.x + Random.Range(-10f, 10f),
                     transform.position.y + 1000f,
                     transform.position.z + Random.Range(-10f, 10f)
@@ -180,7 +206,6 @@ public class CharacterMove : MonoBehaviour
         Ray ray = new Ray(posTarget, Vector3.down);
 
         RaycastHit infoRayCast = new RaycastHit();
-        //Debug.DrawRay(posTarget, Vector3.down * 2f, Color.red);
 
         if (Physics.Raycast(ray, out infoRayCast, Mathf.Infinity) == true)
         {
@@ -188,16 +213,6 @@ public class CharacterMove : MonoBehaviour
         }
     }
 
-    private void OnDrawGizmos()
-    {
-       // Gizmos.DrawWireSphere(this.transform.position, 2f);
-        //if (_collider == null) _collider = GetComponent<Collider>();
-
-        //Gizmos.color = Color.red;
-        //Vector3 pos = new Vector3(_collider.bounds.center.x, _collider.bounds.min.y, _collider.bounds.center.z);
-        //Vector3 size = Vector3.one * 0.1f;
-        //Gizmos.DrawWireCube(pos, size);
-    }
     bool IsGround()
     {
         Vector3 pos = new Vector3(_collider.bounds.center.x, _collider.bounds.min.y, _collider.bounds.center.z);
@@ -222,17 +237,17 @@ public class CharacterMove : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.C))
         {
             isAttack = true;
+            banana.tag = "PlayerAtk";
             StartCoroutine(Attack());
             if (durability <= 0)
             {
                 damage = 0;
-                Debug.Log("무기를 교체하세요 적에게 데미지를 입히실수 없습니다");
             }
             else
             {
                 damage = 1;
             }
-            Debug.Log(durability);
+            //Debug.Log(durability);
         }
     }
     IEnumerator Attack()
@@ -246,10 +261,11 @@ public class CharacterMove : MonoBehaviour
         AtkTrailRender.enabled = false;
         AtkCapsuleCollider.enabled = false;
         isAttack = false;
+        banana.tag = "Untagged";
+
     }
     public void ChangeWeapon()
     {
-        Debug.Log("뚜뚜뚜");
         durability = 15;
     }
     public void PickItem()
@@ -275,6 +291,30 @@ public class CharacterMove : MonoBehaviour
         }
     }
 
-    
+    private void HandleHookshotStart()
+    {
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            if (Physics.Raycast(Camera.main.transform.position, Camera.main.transform.forward, out RaycastHit raycastHit))
+            {
+                //hit 섬씽
+                debughitpoint.position = raycastHit.point;
+                hookShotPosition = raycastHit.point;
+                state = State.HookShotFlyingPlayer;
+            }
+        }
+    }
+    private void HandleHookshotMovement()
+    {
+        Vector3 hookShotDir = (hookShotPosition - transform.position).normalized;
+        float hookShotSpeed = Vector3.Distance(transform.position, hookShotPosition);
+        float hookshotSpeedMultiplier = 2f;
+        MovementInput(hookShotDir * hookShotSpeed * hookshotSpeedMultiplier  * Time.deltaTime);
 
+        float reachedHookshotPositionDistance = 1f;
+        if (Vector3.Distance(transform.position, hookShotPosition) < reachedHookshotPositionDistance)
+        {
+            state = State.Normal;
+        }
+    }
 }
