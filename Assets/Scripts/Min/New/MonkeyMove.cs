@@ -2,34 +2,52 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CMove : MonoBehaviour
+public class MonkeyMove : MonoBehaviour
 {
-    private const float NORMAL_FOV = 60f;
-    private const float HOOKSHOT_FOV = 100f;
-    public float mouseSensitivity = 1f;
+    private ItemController currnetItem;
+
+    [SerializeField]
+    private int durability = 0;
+    private int damage = 1;
+    public bool isHook;
 
     private CharacterController characterController;
     private float cameraVerticalAngle;
     private float characterVelocityY;
     private Vector3 characterVelocityMomentum;
-    private Camera playerCamera;
     private Vector3 hookShotPosition;
-    private State state;
     public Transform debughitpoint;
-    public Transform hookShotTransform; 
+    public Transform hookShotTransform;
+    private Vector3 moveDir;
 
     private float hookShotSize;
+    public LayerMask layerMask;
+
+    #region 카메라 관련
+    [Header("카메라 관련")]
+    private const float NORMAL_FOV = 60f;
+    private const float HOOKSHOT_FOV = 100f;
+    private Camera playerCamera;
     private CameraFOV cameraFOV;
+    public float mouseSensitivity = 1f;
+    #endregion
+
+    #region 플레이어 상태
+    private State state;
     private enum State
     {
         Normal,
         HookShotFlyingPlayer,
         HookShotTrown
     }
+    #endregion 
+
+    private Animator _animator;
     private void Awake()
     {
-        characterController = GetComponent<CharacterController>();
+        _animator = GetComponent<Animator>();
         playerCamera = transform.Find("Camera").GetComponent<Camera>();
+        characterController = GetComponent<CharacterController>();
         cameraFOV = playerCamera.GetComponent<CameraFOV>();
         Cursor.lockState = CursorLockMode.Locked; 
         state = State.Normal;
@@ -77,7 +95,7 @@ public class CMove : MonoBehaviour
         float moveX = Input.GetAxisRaw("Horizontal");
         float moveZ = Input.GetAxisRaw("Vertical");
 
-        float moveSpeed = 20f;
+        float moveSpeed = 5f;
 
         Vector3 characterVelocity = transform.right * moveX * moveSpeed + transform.forward * moveZ * moveSpeed;
 
@@ -86,7 +104,7 @@ public class CMove : MonoBehaviour
             characterVelocityY = 0f;
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                float jumpSpeed = 30f;
+                float jumpSpeed = 15f;
                 characterVelocityY = jumpSpeed;
             }
         }
@@ -108,6 +126,16 @@ public class CMove : MonoBehaviour
                 characterVelocityMomentum = Vector3.zero;
             }
         }
+
+        moveDir = characterVelocity;
+        if (new Vector2(characterVelocity.x, characterVelocity.z) == Vector2.zero)
+        {
+            _animator.SetBool("Walk", false);
+        }
+        else
+        {
+            _animator.SetBool("Walk", true);
+        }
     }
     private void ResetGravityEffect()
     {
@@ -117,16 +145,13 @@ public class CMove : MonoBehaviour
     {
         if (TestInputDownHookshot())
         {
-            if (Physics.Raycast(Camera.main.transform.position, Camera.main.transform.forward, out RaycastHit raycastHit))
-            //if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out RaycastHit raycastHit))
+            if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out RaycastHit raycastHit, layerMask))
             {
-                //hit 섬씽
                 debughitpoint.position = raycastHit.point;
                 hookShotPosition = raycastHit.point;
                 hookShotSize = 0;
                 hookShotTransform.gameObject.SetActive(true);
                 hookShotTransform.localScale = Vector3.zero;
-
                 state = State.HookShotTrown;
             }
         }
@@ -134,7 +159,7 @@ public class CMove : MonoBehaviour
     private void HandleHookShotThrow()
     {
         hookShotTransform.LookAt(hookShotPosition);
-        float hookshotTrownSpeed = 500f;
+        float hookshotTrownSpeed = 250f;
         hookShotSize += hookshotTrownSpeed * Time.deltaTime;
         hookShotTransform.localScale = new Vector3(1, 1, hookShotSize);
 
@@ -155,14 +180,20 @@ public class CMove : MonoBehaviour
 
 
         float hookShotSpeed = Mathf.Clamp(Vector3.Distance(transform.position, hookShotPosition), hookshotSpeedMin, hookshotSpeedMax);
-        float hookshotSpeedMultiplier = 5f;
+        float hookshotSpeedMultiplier = 2f;
         characterController.Move(hookShotDir * hookShotSpeed * hookshotSpeedMultiplier * Time.deltaTime);
 
 
         float reachedHookshotPositionDistance = 1f;
+        float atackRange = 3f;
         if (Vector3.Distance(transform.position, hookShotPosition) < reachedHookshotPositionDistance)
         {
             StopHookShot();
+        }
+        else if (Vector3.Distance(transform.position, hookShotPosition) < atackRange)
+        {
+            _animator.SetTrigger("Attack");
+            StartCoroutine(Attack());
         }
         if (TestInputDownHookshot())
         {
@@ -194,4 +225,18 @@ public class CMove : MonoBehaviour
     {
         return Input.GetKeyDown(KeyCode.Space);
     }
+    IEnumerator Attack()
+    {
+        durability--;
+        if (durability <= 0)
+        {
+            damage = 0;
+        }
+        else
+        {
+            damage = 1;
+        }
+        yield return null;
+    }
+
 }

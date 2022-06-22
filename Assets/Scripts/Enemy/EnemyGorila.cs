@@ -6,12 +6,14 @@ using DG.Tweening;
 
 public class EnemyGorila : MonoBehaviour
 {
+
     [SerializeField] private int _hp = 5;
 
     Rigidbody _rigidbody;
     CapsuleCollider _capsuleCollider;
     Material _mat;
     public bool isChase = false;
+    public bool isAttack;
     public Transform target;
     NavMeshAgent _nav;
     Animator _animator;
@@ -21,7 +23,7 @@ public class EnemyGorila : MonoBehaviour
     public GameObject item;
     CharacterMove cm;
     public LayerMask layerMask;
-    public bool isAttack;
+
     private void Awake()
     {
         cm = FindObjectOfType<CharacterMove>();
@@ -45,7 +47,6 @@ public class EnemyGorila : MonoBehaviour
         if (isChase)
         {
             _nav.SetDestination(target.position); //도착할 목표 위치 지정 함
-
         }
     }
     void FreezeVelocity()
@@ -79,7 +80,6 @@ public class EnemyGorila : MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.DrawWireSphere(transform.position, 2f);
-
     }
     void Check()
     {
