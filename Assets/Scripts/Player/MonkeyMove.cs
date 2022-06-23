@@ -19,6 +19,7 @@ public class MonkeyMove : MonoBehaviour
     private int damage = 1;
     public bool isHook;
 
+    public bool isOpenInven = false;
 
     private CharacterController characterController;
     private float cameraVerticalAngle;
@@ -91,7 +92,7 @@ public class MonkeyMove : MonoBehaviour
                 break;
         }
         PickItem();
-        //OpenInventory();
+        OpenInventory(isOpenInven);
     }
     private void HandleCharacterLock()
     {
@@ -255,13 +256,14 @@ public class MonkeyMove : MonoBehaviour
         }
         yield return null;
     }
-    public void OpenInventory(bool isActive)
+    public void OpenInventory(bool _isActive)
     {
         if (Input.GetKeyDown(KeyCode.Tab))
         {
-            inven.SetActive(true);
+            isOpenInven = _isActive ? false : true;
+            inven.SetActive(isOpenInven);
         }
-        
+
     }
     public void ChangeWeapon(Item item)
     {

@@ -25778,6 +25778,7 @@ MonoBehaviour:
     m_Bits: 128
   durability: 0
   isHook: 0
+  isOpenInven: 0
   debughitpoint: {fileID: 19675720}
   hookShotTransform: {fileID: 862605012}
   layerMask:
