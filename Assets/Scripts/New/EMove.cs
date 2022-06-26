@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
-
+using DG.Tweening;
 public class EMove : MonoBehaviour, IHittable
 {
     public bool isAttack;
@@ -13,7 +13,9 @@ public class EMove : MonoBehaviour, IHittable
     public LayerMask layerMask;
 
     [SerializeField]
-    private GameObject damageEffect;
+    private GameObject damageEffect; 
+    [SerializeField]
+    private GameObject dieeEffect;
     bool isDamaged = false;
     [SerializeField] private UnityEvent IHittable;
     UnityEvent IHittable.OnDamage { get => IHittable; set { } }
@@ -25,6 +27,7 @@ public class EMove : MonoBehaviour, IHittable
     private Transform target;
 
     private float detectedRange = 15f;
+    public GameObject ItemPrefab;
     private enum EnemyState
     {
         Idle, // 일정 감지 전까지 가만있기
@@ -37,10 +40,14 @@ public class EMove : MonoBehaviour, IHittable
     [SerializeField] private bool isChase;
     Vector3 posTarget = Vector3.zero;
 
+    public Collider leftHandColider;
+    public Collider rightHandColider;
+    MonkeyMove monkey;
     private void Awake()
     {
         target = GameManager.Instance.Player;
         _animator = GetComponent<Animator>();
+        monkey = FindObjectOfType<MonkeyMove>();
         _rigidbody = GetComponent<Rigidbody>();
         _enemyState = EnemyState.Idle;
         _nav = GetComponent<NavMeshAgent>();
@@ -132,8 +139,14 @@ public class EMove : MonoBehaviour, IHittable
     }
     IEnumerator Attack()
     {
+        
         _animator.SetTrigger("isAttack");
-        yield return new WaitForSeconds(7f);
+        yield return new WaitForSeconds(1.5f);
+        rightHandColider.enabled = true;
+        leftHandColider.enabled = true;
+        yield return new WaitForSeconds(3f);
+        rightHandColider.enabled = false;
+        leftHandColider.enabled = false;
         isAttack = false;
     }
     public void Damage()
@@ -146,17 +159,17 @@ public class EMove : MonoBehaviour, IHittable
             yield break;
         if (_hp > 0)
         {
-            Debug.Log("Damage");
+            //Debug.Log("Damage");
             isDamaged = true;
             _enemyState = EnemyState.Damage;
+            //monkey.durability--;
+            _hp -= monkey.damage;
+            Debug.Log(monkey.durability);
+            monkey.durability -= 1;
+            monkey.nagodoBar.value -= 1;
+            monkey.nagodoBar.value = Mathf.Lerp(monkey.nagodoBar.value, monkey.durability, Time.deltaTime * 10);
             Instantiate(damageEffect, transform.position, Quaternion.identity);
-            for (int i = 0; i < 4; i++)
-            {
-                skinnedMeshRenderer.material.color = Color.red;
-                yield return new WaitForSeconds(0.1f);
-                skinnedMeshRenderer.material.color = Color.white;
-                yield return new WaitForSeconds(0.1f);
-            }
+            KnockBack();
             yield return new WaitForSeconds(2f);
             _enemyState = EnemyState.Idle;
             isDamaged = false;
@@ -166,8 +179,26 @@ public class EMove : MonoBehaviour, IHittable
             Die();
         }
     }
+    public void KnockBack()
+    {
+        transform.DOJump(Vector3.up, 0.2f, 1, 2f);
+        Vector3 amount = transform.position;
+        Vector3 randomUnit = Random.insideUnitSphere;
+        randomUnit.y = 0f;
+
+        transform.DOMove(amount - randomUnit * 10f, 2f);
+    }
     public void Die()
     {
         _enemyState = EnemyState.Die;
+        _animator.SetTrigger("Die");
+        StartCoroutine(DieGorlia());
+    }
+    IEnumerator DieGorlia()
+    {
+        yield return new WaitForSeconds(2f);
+        Destroy(gameObject);
+        Instantiate(dieeEffect, transform.position + new Vector3(0, 0.5f,0), Quaternion.identity);
+        Instantiate(ItemPrefab, transform.position + new Vector3(0, 0.5f,0), Quaternion.identity);
     }
 }

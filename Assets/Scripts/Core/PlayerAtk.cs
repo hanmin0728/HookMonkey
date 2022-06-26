@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class PlayerAtk : MonoBehaviour
 {
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject.CompareTag("Enemy"))
-        {
-            other.gameObject.GetComponent<IHittable>().OnDamage?.Invoke();
-        }
-    }
+        //private void OnTriggerEnter(Collider other)
+        //{
+        //    if (other.gameObject.CompareTag("Enemy"))
+        //    {
+        //        other.gameObject.GetComponent<IHittable>().OnDamage?.Invoke();
+        //    }
+        //}
 }

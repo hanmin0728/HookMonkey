@@ -1,9 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
-
-public class MonkeyMove : MonoBehaviour
+using DG.Tweening;
+public class MonkeyMove : MonoBehaviour, IHittable
 {
     private ItemController currnetItem;
 
@@ -13,10 +14,9 @@ public class MonkeyMove : MonoBehaviour
     [SerializeField]
     private LayerMask itemLayerMask;
 
-
-    [SerializeField]
-    private int durability = 0;
-    private int damage = 1;
+    public int _hp = 5;
+    public int durability = 0;
+    public int damage = 1;
     public bool isHook;
 
     public bool isOpenInven = false;
@@ -34,6 +34,11 @@ public class MonkeyMove : MonoBehaviour
     public LayerMask layerMask;
 
     public GameObject inven;
+
+    public UnityEvent dieEvent;
+    public GameObject damageEffect;
+
+    public GameObject dieEffect;
 
     #region 카메라 관련
     [Header("카메라 관련")]
@@ -55,10 +60,25 @@ public class MonkeyMove : MonoBehaviour
     #endregion 
 
     private Animator _animator;
+
+    [SerializeField] private UnityEvent IHittable;
+
+    UnityEvent IHittable.OnDamage { get => IHittable; set { } }
+
+    public bool isDamaged = false;
+
+    public Slider hpBar;
+    public Slider nagodoBar;
+
+    public GameObject nagodoDot;
+
+    public CameraShake cameraShake;
+
+    public GameObject waringDurabillty;
     private void Awake()
     {
         _animator = GetComponent<Animator>();
-        playerCamera = transform.Find("Camera").GetComponent<Camera>();
+        playerCamera = transform.Find("CameraHolder").GetComponentInChildren<Camera>();
         characterController = GetComponent<CharacterController>();
         cameraFOV = playerCamera.GetComponent<CameraFOV>();
         currnetItem = FindObjectOfType<ItemController>();
@@ -93,6 +113,20 @@ public class MonkeyMove : MonoBehaviour
         }
         PickItem();
         OpenInventory(isOpenInven);
+        DownDieCheck();
+        if (_hp <= 0)
+        {
+            Invoke("Die", 0.5f);
+            //Die();
+        }
+
+    }
+    public void DownDieCheck()
+    {
+        if (transform.position.y <= -30f)
+        {
+            Debug.Log("PlayerDIe");
+        }
     }
     private void HandleCharacterLock()
     {
@@ -171,6 +205,7 @@ public class MonkeyMove : MonoBehaviour
                 hookShotTransform.gameObject.SetActive(true);
                 hookShotTransform.localScale = Vector3.zero;
                 state = State.HookShotTrown;
+                isHook = true;
             }
         }
     }
@@ -184,7 +219,7 @@ public class MonkeyMove : MonoBehaviour
         if (hookShotSize >= Vector3.Distance(transform.position, hookShotPosition))
         {
             state = State.HookShotFlyingPlayer;
-            cameraFOV.SetCameraFov(HOOKSHOT_FOV); 
+            cameraFOV.SetCameraFov(HOOKSHOT_FOV);
         }
     }
     private void HandleHookshotMovement()
@@ -211,7 +246,17 @@ public class MonkeyMove : MonoBehaviour
         else if (Vector3.Distance(transform.position, hookShotPosition) < atackRange)
         {
             _animator.SetTrigger("Attack");
-            StartCoroutine(Attack());
+            if (isHook)
+            {
+
+                MonkeyAttack();
+
+            }
+            else
+            {
+                return;
+            }
+            // StartCoroutine(Attack());
         }
         if (TestInputDownHookshot())
         {
@@ -234,6 +279,7 @@ public class MonkeyMove : MonoBehaviour
         ResetGravityEffect();
         hookShotTransform.gameObject.SetActive(false);
         cameraFOV.SetCameraFov(NORMAL_FOV);
+        isHook = false;
     }
     private bool TestInputDownHookshot()
     {
@@ -243,9 +289,20 @@ public class MonkeyMove : MonoBehaviour
     {
         return Input.GetKeyDown(KeyCode.Space);
     }
+    public void MonkeyAttack()
+    {
+        StartCoroutine(Attack());
+    }
     IEnumerator Attack()
     {
-        durability--;
+        //if (isHook)
+        //{
+        //    yield break;
+        //}
+        if (durability == 5)
+        {
+            waringDurabillty.SetActive(true);
+        }
         if (durability <= 0)
         {
             damage = 0;
@@ -254,21 +311,24 @@ public class MonkeyMove : MonoBehaviour
         {
             damage = 1;
         }
+
         yield return null;
     }
     public void OpenInventory(bool _isActive)
     {
-        if (Input.GetKeyDown(KeyCode.Tab))
-        {
-            isOpenInven = _isActive ? false : true;
-            inven.SetActive(isOpenInven);
-        }
+        //if (Input.GetKeyDown(KeyCode.Tab))
+        //{
+        //    isOpenInven = _isActive ? false : true;
+        //    inven.SetActive(isOpenInven);
+        //}
 
     }
     public void ChangeWeapon(Item item)
     {
         Debug.Log("실행됨");
+        nagodoDot.SetActive(true);
         durability = 15;
+        nagodoBar.value = 15;
     }
     public void PickItem()
     {
@@ -290,4 +350,51 @@ public class MonkeyMove : MonoBehaviour
             _pickTxt.gameObject.SetActive(false);
         }
     }
+    public void Damage()
+    {
+        StartCoroutine(DamageCoroutine());
+    }
+    IEnumerator DamageCoroutine()
+    {
+        if (isDamaged)
+        {
+            yield break;
+        }
+        isDamaged = true;
+        Debug.Log(_hp);
+        _hp--;
+        hpBar.value -= 1;
+        //   Debug.Log(hpBar.value);
+        hpBar.value = Mathf.Lerp(hpBar.value, _hp, Time.deltaTime * 10);
+        cameraShake.ShakeCam(.15f, 1f);
+        Instantiate(damageEffect, transform.position, Quaternion.identity);
+        PlayerHitFeedBack();
+        yield return new WaitForSeconds(7f);
+        isDamaged = false;
+    }
+
+    public void Die()
+    {
+        dieEvent?.Invoke();
+        Instantiate(dieEffect, transform.position, Quaternion.identity);
+        Time.timeScale = 0f;
+    }
+    public void PlayerHitFeedBack()
+    {
+        transform.DOJump(Vector3.up, 0.2f, 1, 2f);
+        Vector3 amount = transform.position;
+        Vector3 randomUnit = Random.insideUnitSphere;
+        randomUnit.y = 0f;
+
+        transform.DOMove(amount - randomUnit * 10f, 2f);
+    }
+
+    //private void HandleHP()
+    //{
+    //    hpBar.value = Mathf.Lerp(hpBar.value, _hp, Time.deltaTime * 10);
+    //}
+    //private void HandleNagodo()
+    //{
+    //    nagodoBar.value = Mathf.Lerp(nagodoBar.value, durability, Time.deltaTime * 10);
+    //}
 }
