@@ -15775,7 +15775,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: Tap
+  m_Text: Tab
 --- !u!222 &5476445000263679989
 CanvasRenderer:
   m_ObjectHideFlags: 0
