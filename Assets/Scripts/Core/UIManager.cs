@@ -10,7 +10,9 @@ public class UIManager : MonoSingleton<UIManager>
 
     private InventoryItemController _item;
 
+    public GameObject clearTmp;
     public Text enemyCountTxt;
+
     private void Start()
     {
         UpdateEnemyCountText();
@@ -35,4 +37,14 @@ public class UIManager : MonoSingleton<UIManager>
     {
         enemyCountTxt.text = ($" X{ StageManager.Instance.currentEnemyCount}"); 
     }
+    public void DownEnemyCount()
+    {
+        StageManager.Instance.currentEnemyCount -= 1;
+    }
+    public void StageClearText()
+    {
+        clearTmp.SetActive(true);
+    }
+    
+
 }

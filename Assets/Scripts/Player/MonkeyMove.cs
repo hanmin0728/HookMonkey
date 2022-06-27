@@ -22,6 +22,7 @@ public class MonkeyMove : MonoBehaviour, IHittable
     public bool isHook;
 
     public bool isOpenInven = false;
+    public bool isOpenTip = false;
 
     private CharacterController characterController;
     private float cameraVerticalAngle;
@@ -36,6 +37,7 @@ public class MonkeyMove : MonoBehaviour, IHittable
     public LayerMask layerMask;
 
     public GameObject inven;
+    public GameObject tip;
 
     public UnityEvent dieEvent;
     public GameObject damageEffect;
@@ -123,6 +125,7 @@ public class MonkeyMove : MonoBehaviour, IHittable
                 break;
         }
         PickItem();
+        OpenTip(isOpenTip);
         OpenInventory(isOpenInven);
         DownDieCheck();
         if (_hp <= 0)
@@ -359,6 +362,15 @@ public class MonkeyMove : MonoBehaviour, IHittable
             isOpenInven = _isActive ? false : true;
             inventoryManager.ListItems();
             inven.SetActive(isOpenInven);
+        }
+
+    }   
+    public void OpenTip(bool _isActive)
+    {
+        if (Input.GetKeyDown(KeyCode.H))
+        {
+            isOpenTip = _isActive ? false : true;
+            tip.SetActive(isOpenTip);
         }
 
     }

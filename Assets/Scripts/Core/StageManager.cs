@@ -17,5 +17,16 @@ public class StageManager : MonoSingleton<StageManager>
         startEnemyCount = currentStageSO.enemyCount;
         currentEnemyCount = startEnemyCount;
     }
+    private void Update()
+    {
+        if (currentEnemyCount <= 0)
+        {
+            StageClear();
+        }
 
+    }
+    private void StageClear()
+    {
+        UIManager.Instance.StageClearText();
+    }
 }

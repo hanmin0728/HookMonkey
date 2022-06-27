@@ -41,6 +41,7 @@ public class EMove : MonoBehaviour, IHittable
     }
     Animator _animator;
     [SerializeField] private bool isChase;
+    public bool isDie = false;
     Vector3 posTarget = Vector3.zero;
 
     public Collider leftHandColider;
@@ -64,7 +65,7 @@ public class EMove : MonoBehaviour, IHittable
     }
     private void Start()
     {
-        _maxHp = 5;
+        _maxHp = _hp;   
     }
     private void Update()
     {
@@ -80,6 +81,16 @@ public class EMove : MonoBehaviour, IHittable
             _nav.SetDestination(target.position); //도착할 목표 위치 지정 함
         }
         EnemyAttack();
+        if (_hp <= 0)
+        {
+            if (isDie)
+            {
+                return;
+            }
+            Die();
+
+            //Die();
+        }
     }
     void UpGround()
     {
@@ -196,10 +207,7 @@ public class EMove : MonoBehaviour, IHittable
             _enemyState = EnemyState.Idle;
             isDamaged = false;
         }
-        else
-        {
-            Die();
-        }
+      
     }
     public void KnockBack()
     {
@@ -214,8 +222,9 @@ public class EMove : MonoBehaviour, IHittable
     {
         _enemyState = EnemyState.Die;
         _animator.SetTrigger("Die");
-        StageManager.Instance.currentEnemyCount -= 1;
+        UIManager.Instance.DownEnemyCount();
         UIManager.Instance.UpdateEnemyCountText();
+        isDie = true;
         StartCoroutine(DieGorlia());
     }
     IEnumerator DieGorlia()
@@ -224,5 +233,8 @@ public class EMove : MonoBehaviour, IHittable
         Destroy(gameObject);
         Instantiate(dieeEffect, transform.position + new Vector3(0, 0.5f,0), Quaternion.identity);
         Instantiate(ItemPrefab, transform.position + new Vector3(0, 0.5f,0), Quaternion.identity);
+    }
+    private void OnDisable()
+    {
     }
 }

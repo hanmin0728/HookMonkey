@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-public class SceneHandler : MonoBehaviour
+public class SceneHandler : MonoSingleton<SceneHandler>
 {
   public void Restart()
     {
@@ -12,7 +12,18 @@ public class SceneHandler : MonoBehaviour
     } 
     public void Lobby()
     {
-        SceneManager.LoadScene("A");
+        SceneManager.LoadScene("Menu");
         Time.timeScale = 1;
     }
+    public void Clear()
+    {
+        SceneManager.LoadScene("Clear");
+        Time.timeScale = 1;
+    }
+
+    public void QuitGame()
+    {
+        Application.Quit();
+    }
+
 }
