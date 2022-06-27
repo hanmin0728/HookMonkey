@@ -10,6 +10,11 @@ public class UIManager : MonoSingleton<UIManager>
 
     private InventoryItemController _item;
 
+    public Text enemyCountTxt;
+    private void Start()
+    {
+        UpdateEnemyCountText();
+    }
     public void SetItemController(InventoryItemController item)
     {
         _item = item;
@@ -24,5 +29,10 @@ public class UIManager : MonoSingleton<UIManager>
     public void OnDiePanel()
     {
         diePanel.SetActive(true);
+    }
+
+    public void UpdateEnemyCountText()
+    {
+        enemyCountTxt.text = ($" X{ StageManager.Instance.currentEnemyCount}"); 
     }
 }

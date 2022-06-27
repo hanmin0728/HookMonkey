@@ -7,5 +7,5 @@ public class StageSO : ScriptableObject
 {
     public float limitTime; //제한시간
     public GameObject enemyPrefab; //적 
-    public int enemyCount = 5; // 스테이지 당 적 개수
+    public int enemyCount;// 스테이지 당 적 개수
 }

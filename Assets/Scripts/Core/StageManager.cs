@@ -1,18 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
-public class StageManager : MonoBehaviour
+public class StageManager : MonoSingleton<StageManager>
 {
-    // Start is called before the first frame update
-    void Start()
+    public StageSO currentStageSO;
+
+    public int currentEnemyCount;
+    public int startEnemyCount;
+
+  //  public Text enemyCount;
+
+    protected override void Awake()
     {
-        
+        startEnemyCount = currentStageSO.enemyCount;
+        currentEnemyCount = startEnemyCount;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

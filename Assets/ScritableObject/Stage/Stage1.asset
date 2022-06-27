@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   limitTime: 300
   enemyPrefab: {fileID: 0}
-  enemyCount: 1
+  enemyCount: 5

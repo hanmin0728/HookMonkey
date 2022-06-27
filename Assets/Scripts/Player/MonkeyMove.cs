@@ -81,6 +81,7 @@ public class MonkeyMove : MonoBehaviour, IHittable
     public Image hpImage;
     public Image nagodoImage;
 
+    InventoryManager inventoryManager;
     private void Awake()
     {
         _animator = GetComponent<Animator>();
@@ -88,7 +89,9 @@ public class MonkeyMove : MonoBehaviour, IHittable
         characterController = GetComponent<CharacterController>();
         cameraFOV = playerCamera.GetComponent<CameraFOV>();
         currnetItem = FindObjectOfType<ItemController>();
-        //Cursor.lockState = CursorLockMode.Locked; 
+        // Cursor.lockState = CursorLockMode.Locked; 
+        Cursor.visible = false;
+        inventoryManager = GameObject.Find("InventoryManager").GetComponent<InventoryManager>();
         state = State.Normal;
         hookShotTransform.gameObject.SetActive(false);
     }
@@ -128,7 +131,7 @@ public class MonkeyMove : MonoBehaviour, IHittable
             //Die();
         }
         DownCheck();
-
+        OpenCursor();
     }
     public void DownCheck()
     {
@@ -338,13 +341,25 @@ public class MonkeyMove : MonoBehaviour, IHittable
 
         yield return null;
     }
+    public void OpenCursor()
+    {
+        if (Input.GetKey(KeyCode.LeftControl))
+        {
+            Cursor.visible = true;
+        }
+        else if (Input.GetKeyUp(KeyCode.LeftControl))
+        {
+            Cursor.visible = false;
+        }
+    }
     public void OpenInventory(bool _isActive)
     {
-        //if (Input.GetKeyDown(KeyCode.Tab))
-        //{
-        //    isOpenInven = _isActive ? false : true;
-        //    inven.SetActive(isOpenInven);
-        //}
+        if (Input.GetKeyDown(KeyCode.Tab))
+        {
+            isOpenInven = _isActive ? false : true;
+            inventoryManager.ListItems();
+            inven.SetActive(isOpenInven);
+        }
 
     }
     public void ChangeWeapon(Item item)
@@ -361,7 +376,8 @@ public class MonkeyMove : MonoBehaviour, IHittable
         Ray ray = new Ray(transform.position, transform.forward);
         //Debug.DrawRay(transform.position, transform.forward * 5, Color.red);
 
-        if (Physics.Raycast(ray, out raycastHit, 5f, itemLayerMask))
+        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out raycastHit, 50f, itemLayerMask))
+            //sif (Physics.Raycast(ray, out raycastHit, 5f, itemLayerMask))
         {
             _pickTxt.gameObject.SetActive(true);
             if (Input.GetKeyDown(KeyCode.F))
@@ -395,7 +411,7 @@ public class MonkeyMove : MonoBehaviour, IHittable
         Debug.Log(1 / _maxHp);
         //   Debug.Log(hpBar.value);
         //hpBar.value = Mathf.Lerp(hpBar.value, _hp, Time.deltaTime * 10);
-        cameraShake.ShakeCam(.15f, 1f);
+        //cameraShake.ShakeCam(.15f, 1f);
         Instantiate(damageEffect, transform.position, Quaternion.identity);
         PlayerHitFeedBack();
         yield return new WaitForSeconds(7f);

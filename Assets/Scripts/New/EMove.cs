@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.AI;
 using UnityEngine.Events;
 using DG.Tweening;
@@ -48,6 +49,9 @@ public class EMove : MonoBehaviour, IHittable
 
     public Transform hpTransform;
     Camera cam;
+    public CameraShake cameraShake;
+
+    public Image enemyHpImage;
     private void Awake()
     {
         target = GameManager.Instance.Player;
@@ -181,7 +185,8 @@ public class EMove : MonoBehaviour, IHittable
             Debug.Log(monkey.durability);
             monkey.durability -= 1;
             monkey.nagodoImage.fillAmount -= 1f / monkey.Maxdurability; // 적데미지나누기맥스ㅇ헤이히피
-
+            cameraShake.ShakeCam(.15f, 1f);
+            enemyHpImage.fillAmount -= 1f / _maxHp;
             //monkey.nagodoImage.fillAmount -= 1f / _maxHp;
             // monkey.nagodoBar.value -= 1;
             //  monkey.nagodoBar.value = Mathf.Lerp(monkey.nagodoBar.value, monkey.durability, Time.deltaTime * 10);
@@ -209,6 +214,8 @@ public class EMove : MonoBehaviour, IHittable
     {
         _enemyState = EnemyState.Die;
         _animator.SetTrigger("Die");
+        StageManager.Instance.currentEnemyCount -= 1;
+        UIManager.Instance.UpdateEnemyCountText();
         StartCoroutine(DieGorlia());
     }
     IEnumerator DieGorlia()
