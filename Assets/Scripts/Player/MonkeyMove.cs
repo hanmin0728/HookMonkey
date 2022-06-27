@@ -15,7 +15,9 @@ public class MonkeyMove : MonoBehaviour, IHittable
     private LayerMask itemLayerMask;
 
     public int _hp = 5;
+    public int _maxHp;
     public int durability = 0;
+    public int Maxdurability = 0;
     public int damage = 1;
     public bool isHook;
 
@@ -67,7 +69,7 @@ public class MonkeyMove : MonoBehaviour, IHittable
 
     public bool isDamaged = false;
 
-    public Slider hpBar;
+    //public Slider hpBar;
     public Slider nagodoBar;
 
     public GameObject nagodoDot;
@@ -75,6 +77,10 @@ public class MonkeyMove : MonoBehaviour, IHittable
     public CameraShake cameraShake;
 
     public GameObject waringDurabillty;
+
+    public Image hpImage;
+    public Image nagodoImage;
+
     private void Awake()
     {
         _animator = GetComponent<Animator>();
@@ -89,6 +95,8 @@ public class MonkeyMove : MonoBehaviour, IHittable
     private void Start()
     {
         durability = currnetItem.item.durability;
+        _maxHp = 5;
+        Maxdurability = durability;
     }
     private void Update()
     {
@@ -119,13 +127,29 @@ public class MonkeyMove : MonoBehaviour, IHittable
             Invoke("Die", 0.5f);
             //Die();
         }
+        DownCheck();
 
+    }
+    public void DownCheck()
+    {
+        if (Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            if (!characterController.isGrounded)
+            {
+                Time.timeScale = 0.15f;
+            }
+        }
+        else if (Input.GetKeyUp(KeyCode.LeftShift))
+        {
+            Time.timeScale = 1f;
+        }
     }
     public void DownDieCheck()
     {
         if (transform.position.y <= -30f)
         {
             Debug.Log("PlayerDIe");
+            Invoke("Die", 0.5f);
         }
     }
     private void HandleCharacterLock()
@@ -328,7 +352,8 @@ public class MonkeyMove : MonoBehaviour, IHittable
         Debug.Log("실행됨");
         nagodoDot.SetActive(true);
         durability = 15;
-        nagodoBar.value = 15;
+        nagodoImage.fillAmount = 1;
+        //nagodoBar.value = 15;
     }
     public void PickItem()
     {
@@ -363,9 +388,13 @@ public class MonkeyMove : MonoBehaviour, IHittable
         isDamaged = true;
         Debug.Log(_hp);
         _hp--;
-        hpBar.value -= 1;
+
+        //hpBar.value -= 1;
+
+        hpImage.fillAmount -= 1f / _maxHp; // 적데미지나누기맥스ㅇ헤이히피
+        Debug.Log(1 / _maxHp);
         //   Debug.Log(hpBar.value);
-        hpBar.value = Mathf.Lerp(hpBar.value, _hp, Time.deltaTime * 10);
+        //hpBar.value = Mathf.Lerp(hpBar.value, _hp, Time.deltaTime * 10);
         cameraShake.ShakeCam(.15f, 1f);
         Instantiate(damageEffect, transform.position, Quaternion.identity);
         PlayerHitFeedBack();

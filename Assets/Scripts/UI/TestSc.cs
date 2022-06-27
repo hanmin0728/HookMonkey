@@ -7,7 +7,6 @@ public class TestSc : MonoBehaviour
 {
     public Image jojun;
 
-
     void Start()
     {
         jojun.color = new Color(1, 1, 1, 0.75f);
@@ -24,12 +23,12 @@ public class TestSc : MonoBehaviour
                 jojun.color = new Color(1, 0, 0, 0.75f);
 
             }
-            else
-            {
-                jojun.color = new Color(1, 0, 0, 0.75f);
-
-            }
 
         }
+            else
+            {
+                jojun.color = new Color(1, 1, 1, 0.75f);
+
+            }
     }
 }

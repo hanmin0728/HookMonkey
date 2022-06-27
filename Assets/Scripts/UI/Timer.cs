@@ -9,8 +9,11 @@ public class Timer : MonoBehaviour
     [SerializeField]
     public StageSO stageLimitTimeTimme;
     private float setTime;
+    MonkeyMove m;
     private void Awake()
     {
+
+        m = FindObjectOfType<MonkeyMove>();
         setTime = stageLimitTimeTimme.limitTime;
     }
   
@@ -23,6 +26,8 @@ public class Timer : MonoBehaviour
         }
         else if (setTime <= 0)
         {
+            m.Die();
+            //m.Invoke("Die", 0.5f);
             Time.timeScale = 0f;
             Debug.Log("timeout");
 

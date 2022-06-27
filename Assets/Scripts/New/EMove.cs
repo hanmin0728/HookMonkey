@@ -10,6 +10,8 @@ public class EMove : MonoBehaviour, IHittable
 
     private Rigidbody _rigidbody;
     [SerializeField] private int _hp = 5;
+    public int _maxHp;
+
     public LayerMask layerMask;
 
     [SerializeField]
@@ -43,6 +45,9 @@ public class EMove : MonoBehaviour, IHittable
     public Collider leftHandColider;
     public Collider rightHandColider;
     MonkeyMove monkey;
+
+    public Transform hpTransform;
+    Camera cam;
     private void Awake()
     {
         target = GameManager.Instance.Player;
@@ -51,9 +56,18 @@ public class EMove : MonoBehaviour, IHittable
         _rigidbody = GetComponent<Rigidbody>();
         _enemyState = EnemyState.Idle;
         _nav = GetComponent<NavMeshAgent>();
+        cam = GameObject.Find("CameraHolder").GetComponentInChildren<Camera>();
+    }
+    private void Start()
+    {
+        _maxHp = 5;
     }
     private void Update()
     {
+        Quaternion hp = Quaternion.LookRotation(hpTransform.position - cam.transform.position);
+        Vector3 hp_angle = Quaternion.RotateTowards(hpTransform.rotation, hp, 200).eulerAngles;
+        hpTransform.rotation = Quaternion.Euler(0, hp_angle.y, 0);
+
         CheckState();
         CheckPlayer();
         UpGround();
@@ -166,8 +180,11 @@ public class EMove : MonoBehaviour, IHittable
             _hp -= monkey.damage;
             Debug.Log(monkey.durability);
             monkey.durability -= 1;
-            monkey.nagodoBar.value -= 1;
-            monkey.nagodoBar.value = Mathf.Lerp(monkey.nagodoBar.value, monkey.durability, Time.deltaTime * 10);
+            monkey.nagodoImage.fillAmount -= 1f / monkey.Maxdurability; // 적데미지나누기맥스ㅇ헤이히피
+
+            //monkey.nagodoImage.fillAmount -= 1f / _maxHp;
+            // monkey.nagodoBar.value -= 1;
+            //  monkey.nagodoBar.value = Mathf.Lerp(monkey.nagodoBar.value, monkey.durability, Time.deltaTime * 10);
             Instantiate(damageEffect, transform.position, Quaternion.identity);
             KnockBack();
             yield return new WaitForSeconds(2f);
