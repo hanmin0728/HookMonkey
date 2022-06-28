@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class GameManager : MonoSingleton<GameManager>
 {
+    public PoolManager PoolManager { get { return poolManager; } }
+    [SerializeField] private PoolManager poolManager;
     [SerializeField] private Transform player;
     public Transform Player { get { return player; } }
 
@@ -28,5 +30,10 @@ public class GameManager : MonoSingleton<GameManager>
         {
             Instance.timeScale = Mathf.Clamp(value, 0, 1);
         }
+    }
+    protected override void Awake()
+    {
+        base.Awake();
+       poolManager = FindObjectOfType<PoolManager>();
     }
 }

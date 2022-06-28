@@ -173,7 +173,7 @@ public class EMove : MonoBehaviour, IHittable
         yield return new WaitForSeconds(1.5f);
         rightHandColider.enabled = true;
         leftHandColider.enabled = true;
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(5f);
         rightHandColider.enabled = false;
         leftHandColider.enabled = false;
         isAttack = false;
@@ -221,6 +221,8 @@ public class EMove : MonoBehaviour, IHittable
     public void Die()
     {
         _enemyState = EnemyState.Die;
+        rightHandColider.enabled = false;
+        leftHandColider.enabled = false;
         _animator.SetTrigger("Die");
         UIManager.Instance.DownEnemyCount();
         UIManager.Instance.UpdateEnemyCountText();

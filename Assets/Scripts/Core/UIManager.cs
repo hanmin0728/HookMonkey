@@ -2,17 +2,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
+using DG.Tweening;
 public class UIManager : MonoSingleton<UIManager>
 {
     public GameObject diePanel;
-    public GameObject deletePopup;  
+    public GameObject deletePopup;
 
     private InventoryItemController _item;
 
     public GameObject clearTmp;
     public Text enemyCountTxt;
 
+    public Text clearTxt;
+
+    public Timer timer;
+    public float cleartime;
+    public float timetime;
     private void Start()
     {
         UpdateEnemyCountText();
@@ -35,7 +40,7 @@ public class UIManager : MonoSingleton<UIManager>
 
     public void UpdateEnemyCountText()
     {
-        enemyCountTxt.text = ($" X{ StageManager.Instance.currentEnemyCount}"); 
+        enemyCountTxt.text = ($" X{ StageManager.Instance.currentEnemyCount}");
     }
     public void DownEnemyCount()
     {
@@ -45,6 +50,13 @@ public class UIManager : MonoSingleton<UIManager>
     {
         clearTmp.SetActive(true);
     }
-    
+    public void ClearTimeText()
+    {
+        timetime = StageManager.Instance.currentStageSO.limitTime;
+        cleartime = timetime -= timer.setTime;
+        clearTxt.text = ($"클리어까지 걸린 시간: {Mathf.Round(cleartime).ToString()}s");
+        //clearTxt.DOText($"Clear하는데까지 걸린시간{ cleartime}", 0.5f);
+    }
+
 
 }

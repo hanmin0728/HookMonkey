@@ -28,5 +28,6 @@ public class StageManager : MonoSingleton<StageManager>
     private void StageClear()
     {
         UIManager.Instance.StageClearText();
+
     }
 }

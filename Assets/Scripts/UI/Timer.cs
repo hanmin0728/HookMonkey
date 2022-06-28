@@ -8,7 +8,7 @@ public class Timer : MonoBehaviour
     public Text timer;
     [SerializeField]
     public StageSO stageLimitTimeTimme;
-    private float setTime;
+    public float setTime;
     MonkeyMove m;
     private void Awake()
     {
@@ -29,9 +29,7 @@ public class Timer : MonoBehaviour
             m.Die();
             //m.Invoke("Die", 0.5f);
             Time.timeScale = 0f;
-            Debug.Log("timeout");
-
         }
-        timer.text = Mathf.Round(setTime).ToString();
+        timer.text = ($"≈∏¿Ã∏”: { Mathf.Round(setTime).ToString()}s");
     }
 }

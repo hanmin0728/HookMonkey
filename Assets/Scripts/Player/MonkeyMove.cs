@@ -84,6 +84,17 @@ public class MonkeyMove : MonoBehaviour, IHittable
     public Image nagodoImage;
 
     InventoryManager inventoryManager;
+    public float maxHookDistance;
+    public Text distanceTmp;
+    public Text durTxt;
+    public LayerMask ground;
+    private ParticleSystem speedLineParticleSystem;
+
+    public GameObject hitFeedback;
+
+    public GameObject HpDot;
+
+
     private void Awake()
     {
         _animator = GetComponent<Animator>();
@@ -91,6 +102,7 @@ public class MonkeyMove : MonoBehaviour, IHittable
         characterController = GetComponent<CharacterController>();
         cameraFOV = playerCamera.GetComponent<CameraFOV>();
         currnetItem = FindObjectOfType<ItemController>();
+        speedLineParticleSystem = GameObject.Find("SpeedLineParticleSystem").GetComponent<ParticleSystem>();
         // Cursor.lockState = CursorLockMode.Locked; 
         Cursor.visible = false;
         inventoryManager = GameObject.Find("InventoryManager").GetComponent<InventoryManager>();
@@ -134,6 +146,7 @@ public class MonkeyMove : MonoBehaviour, IHittable
             //Die();
         }
         DownCheck();
+        DurabilityCheck();
         OpenCursor();
     }
     public void DownCheck()
@@ -227,7 +240,7 @@ public class MonkeyMove : MonoBehaviour, IHittable
     {
         if (TestInputDownHookshot())
         {
-            if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out RaycastHit raycastHit, layerMask))
+            if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out RaycastHit raycastHit, maxHookDistance, layerMask))
             {
                 debughitpoint.position = raycastHit.point;
                 hookShotPosition = raycastHit.point;
@@ -237,7 +250,24 @@ public class MonkeyMove : MonoBehaviour, IHittable
                 state = State.HookShotTrown;
                 isHook = true;
             }
+            else
+            {
+                if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out RaycastHit hit, maxHookDistance, ground))
+                {
+                    distanceTmp.text = string.Format("This object cannot be hooked");
+                    StartCoroutine(textSet());
+                    return;
+                }
+               distanceTmp.text = string.Format("That Object so far ");
+                StartCoroutine(textSet());
+            }
         }
+    }
+    IEnumerator textSet()
+    {
+        distanceTmp.gameObject.SetActive(true);
+        yield return new WaitForSeconds(0.2f);
+        distanceTmp.gameObject.SetActive(false);
     }
     private void HandleHookShotThrow()
     {
@@ -250,6 +280,7 @@ public class MonkeyMove : MonoBehaviour, IHittable
         {
             state = State.HookShotFlyingPlayer;
             cameraFOV.SetCameraFov(HOOKSHOT_FOV);
+           // speedLineParticleSystem.Play();
         }
     }
     private void HandleHookshotMovement()
@@ -309,11 +340,13 @@ public class MonkeyMove : MonoBehaviour, IHittable
         ResetGravityEffect();
         hookShotTransform.gameObject.SetActive(false);
         cameraFOV.SetCameraFov(NORMAL_FOV);
+        speedLineParticleSystem.Stop();
         isHook = false;
     }
     private bool TestInputDownHookshot()
     {
-        return Input.GetKeyDown(KeyCode.E);
+       return Input.GetKeyDown(KeyCode.E);
+       // return Input.GetMouseButtonDown(1);
     }
     private bool TestInputJump()
     {
@@ -344,6 +377,17 @@ public class MonkeyMove : MonoBehaviour, IHittable
 
         yield return null;
     }
+    public void DurabilityCheck()
+    {
+        if (durability <= 0)
+        {
+            durTxt.gameObject.SetActive(true);
+        }
+        else
+        {
+            durTxt.gameObject.SetActive(false);
+        }
+    }    
     public void OpenCursor()
     {
         if (Input.GetKey(KeyCode.LeftControl))
@@ -406,6 +450,7 @@ public class MonkeyMove : MonoBehaviour, IHittable
     public void Damage()
     {
         StartCoroutine(DamageCoroutine());
+ 
     }
     IEnumerator DamageCoroutine()
     {
@@ -424,12 +469,19 @@ public class MonkeyMove : MonoBehaviour, IHittable
         //   Debug.Log(hpBar.value);
         //hpBar.value = Mathf.Lerp(hpBar.value, _hp, Time.deltaTime * 10);
         //cameraShake.ShakeCam(.15f, 1f);
-        Instantiate(damageEffect, transform.position, Quaternion.identity);
+        //  Instantiate(damageEffect, transform.position, Quaternion.identity);
+        StartCoroutine(DamageHit());
+        DamegaDotFeedback();
         PlayerHitFeedBack();
-        yield return new WaitForSeconds(7f);
+        yield return new WaitForSeconds(5f);
         isDamaged = false;
     }
-
+    IEnumerator DamageHit()
+    {
+        hitFeedback.SetActive(true);
+        yield return new WaitForSeconds(1f);
+        hitFeedback.SetActive(false);
+    }
     public void Die()
     {
         dieEvent?.Invoke();
@@ -442,10 +494,14 @@ public class MonkeyMove : MonoBehaviour, IHittable
         Vector3 amount = transform.position;
         Vector3 randomUnit = Random.insideUnitSphere;
         randomUnit.y = 0f;
-
         transform.DOMove(amount - randomUnit * 10f, 2f);
     }
-
+    public void DamegaDotFeedback()
+    {
+        Sequence seq = DOTween.Sequence();
+       seq.Append( HpDot.transform.DOScale(new Vector3(1.2f, 1.2f, 1.2f), 0.2f));
+        seq.Append(HpDot.transform.DOScale(Vector3.one, 0.2f));
+    }
     //private void HandleHP()
     //{
     //    hpBar.value = Mathf.Lerp(hpBar.value, _hp, Time.deltaTime * 10);
