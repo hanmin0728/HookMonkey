@@ -203,6 +203,10 @@ public class EMove : MonoBehaviour, IHittable
             yield break;
         if (_hp > 0)
         {
+            if (monkey.durability <= 0)
+            {
+                yield break;
+            }
             //Debug.Log("Damage");
             isDamaged = true;
             _enemyState = EnemyState.Damage;
