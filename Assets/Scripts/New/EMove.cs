@@ -53,6 +53,13 @@ public class EMove : MonoBehaviour, IHittable
     public CameraShake cameraShake;
 
     public Image enemyHpImage;
+
+    #region 프리즈피드백 관련
+    public float stopTime;
+    public bool stopping;
+    public float slowTime;
+    #endregion
+    public CapsuleCollider cap;
     private void Awake()
     {
         target = GameManager.Instance.Player;
@@ -69,6 +76,9 @@ public class EMove : MonoBehaviour, IHittable
     }
     private void Update()
     {
+        if (isDie)
+            return;
+
         Quaternion hp = Quaternion.LookRotation(hpTransform.position - cam.transform.position);
         Vector3 hp_angle = Quaternion.RotateTowards(hpTransform.rotation, hp, 200).eulerAngles;
         hpTransform.rotation = Quaternion.Euler(0, hp_angle.y, 0);
@@ -140,12 +150,17 @@ public class EMove : MonoBehaviour, IHittable
         switch (_enemyState)
         {
             case EnemyState.Idle:
+                // 
+
                 break;
             case EnemyState.Walk:
+                //걷는 코드
                 break;
             case EnemyState.Attack:
+                // 공격하는 코드
                 break;
             case EnemyState.Damage:
+                // 
                 break;
             case EnemyState.Die:
                 break;
@@ -173,7 +188,7 @@ public class EMove : MonoBehaviour, IHittable
         yield return new WaitForSeconds(1.5f);
         rightHandColider.enabled = true;
         leftHandColider.enabled = true;
-        yield return new WaitForSeconds(5f);
+        yield return new WaitForSeconds(3f);
         rightHandColider.enabled = false;
         leftHandColider.enabled = false;
         isAttack = false;
@@ -196,7 +211,7 @@ public class EMove : MonoBehaviour, IHittable
             Debug.Log(monkey.durability);
             monkey.durability -= 1;
             monkey.nagodoImage.fillAmount -= 1f / monkey.Maxdurability; // 적데미지나누기맥스ㅇ헤이히피
-            cameraShake.ShakeCam(.15f, 1f);
+            SoundManager.Instance.PlaySE("적 데미지");
             enemyHpImage.fillAmount -= 1f / _maxHp;
             //monkey.nagodoImage.fillAmount -= 1f / _maxHp;
             // monkey.nagodoBar.value -= 1;
@@ -211,22 +226,32 @@ public class EMove : MonoBehaviour, IHittable
     }
     public void KnockBack()
     {
+
         transform.DOJump(Vector3.up, 0.2f, 1, 2f);
         Vector3 amount = transform.position;
         Vector3 randomUnit = Random.insideUnitSphere;
         randomUnit.y = 0f;
 
         transform.DOMove(amount - randomUnit * 10f, 2f);
+        if (_hp <= 1)
+        {
+            return;
+        }
+
+        TimeStop();
     }
     public void Die()
     {
         _enemyState = EnemyState.Die;
         rightHandColider.enabled = false;
         leftHandColider.enabled = false;
+        cap.direction = 2;
         _animator.SetTrigger("Die");
+        SoundManager.Instance.PlaySE("적죽음");
         UIManager.Instance.DownEnemyCount();
         UIManager.Instance.UpdateEnemyCountText();
         isDie = true;
+        StopAllCoroutines();
         StartCoroutine(DieGorlia());
     }
     IEnumerator DieGorlia()
@@ -236,7 +261,33 @@ public class EMove : MonoBehaviour, IHittable
         Instantiate(dieeEffect, transform.position + new Vector3(0, 0.5f,0), Quaternion.identity);
         Instantiate(ItemPrefab, transform.position + new Vector3(0, 0.5f,0), Quaternion.identity);
     }
+    public void TimeStop()
+    {
+    
+        if (!stopping)
+        {
+
+            stopping = true;
+            Time.timeScale = 0.5f;
+            StartCoroutine(Stop());
+        }
+    }
+    IEnumerator Stop()
+    {
+        if (isDie)
+        {
+            yield break;
+        }
+        yield return new WaitForSecondsRealtime(stopTime);
+        Time.timeScale = 0.01f;
+        yield return new WaitForSecondsRealtime(slowTime);
+
+        Time.timeScale = 1;
+        stopping = false;
+    }
     private void OnDisable()
     {
+    
+        Time.timeScale = 1;
     }
 }

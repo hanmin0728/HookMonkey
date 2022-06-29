@@ -23,6 +23,7 @@ public class MonkeyMove : MonoBehaviour, IHittable
 
     public bool isOpenInven = false;
     public bool isOpenTip = false;
+    public bool isOpenEsc = false;
 
     private CharacterController characterController;
     private float cameraVerticalAngle;
@@ -39,7 +40,7 @@ public class MonkeyMove : MonoBehaviour, IHittable
     public GameObject inven;
     public GameObject tip;
 
-    public UnityEvent dieEvent;
+    //public UnityEvent dieEvent;
     public GameObject damageEffect;
 
     public GameObject dieEffect;
@@ -94,7 +95,11 @@ public class MonkeyMove : MonoBehaviour, IHittable
 
     public GameObject HpDot;
 
+    public Text dieText;
 
+    public Image jojun;
+    public bool isDie;
+    public GameObject escPanel;
     private void Awake()
     {
         _animator = GetComponent<Animator>();
@@ -104,7 +109,7 @@ public class MonkeyMove : MonoBehaviour, IHittable
         currnetItem = FindObjectOfType<ItemController>();
         speedLineParticleSystem = GameObject.Find("SpeedLineParticleSystem").GetComponent<ParticleSystem>();
         // Cursor.lockState = CursorLockMode.Locked; 
-        Cursor.visible = false;
+       Cursor.visible = false;
         inventoryManager = GameObject.Find("InventoryManager").GetComponent<InventoryManager>();
         state = State.Normal;
         hookShotTransform.gameObject.SetActive(false);
@@ -117,6 +122,10 @@ public class MonkeyMove : MonoBehaviour, IHittable
     }
     private void Update()
     {
+        if (isDie)
+        {
+            return;
+        }
         switch (state)
         {
             case State.Normal:
@@ -137,13 +146,16 @@ public class MonkeyMove : MonoBehaviour, IHittable
                 break;
         }
         PickItem();
+         CanHo();
         OpenTip(isOpenTip);
         OpenInventory(isOpenInven);
+        OpenEsc(isOpenEsc);
         DownDieCheck();
         if (_hp <= 0)
         {
-            Invoke("Die", 0.5f);
-            //Die();
+            dieText.text = ($"Death reason: Enemy");
+            UIManager.Instance.OnDiePanel();
+            Die();
         }
         DownCheck();
         DurabilityCheck();
@@ -167,8 +179,10 @@ public class MonkeyMove : MonoBehaviour, IHittable
     {
         if (transform.position.y <= -30f)
         {
-            Debug.Log("PlayerDIe");
-            Invoke("Die", 0.5f);
+            //Debug.Log("PlayerDIe");
+            dieText.text = ($"Death reason: Fall"); 
+             UIManager.Instance.OnDiePanel();
+            Die();
         }
     }
     private void HandleCharacterLock()
@@ -236,12 +250,30 @@ public class MonkeyMove : MonoBehaviour, IHittable
     {
         characterVelocityY = 0f;
     }
+    public void CanHo()
+    {
+        if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out RaycastHit raycastHit, maxHookDistance, layerMask))
+        {
+            jojun.gameObject.SetActive(true);
+        }
+        else
+        {
+            if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out RaycastHit hit, maxHookDistance, ground))
+            {
+                jojun.gameObject.SetActive(false);
+                return;
+            }
+            jojun.gameObject.SetActive(false);
+
+        }
+    }
     private void HandleHookshotStart()
     {
         if (TestInputDownHookshot())
         {
             if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out RaycastHit raycastHit, maxHookDistance, layerMask))
             {
+                SoundManager.Instance.PlaySE("훅");
                 debughitpoint.position = raycastHit.point;
                 hookShotPosition = raycastHit.point;
                 hookShotSize = 0;
@@ -258,7 +290,7 @@ public class MonkeyMove : MonoBehaviour, IHittable
                     StartCoroutine(textSet());
                     return;
                 }
-               distanceTmp.text = string.Format("That Object so far ");
+                distanceTmp.text = string.Format("That Object so far ");
                 StartCoroutine(textSet());
             }
         }
@@ -354,6 +386,7 @@ public class MonkeyMove : MonoBehaviour, IHittable
     }
     public void MonkeyAttack()
     {
+       // SoundManager.Instance.PlaySE("공격");
         StartCoroutine(Attack());
     }
     IEnumerator Attack()
@@ -404,8 +437,21 @@ public class MonkeyMove : MonoBehaviour, IHittable
         if (Input.GetKeyDown(KeyCode.Tab))
         {
             isOpenInven = _isActive ? false : true;
+            Cursor.visible = _isActive ?false: true;
+
             inventoryManager.ListItems();
             inven.SetActive(isOpenInven);
+        }
+
+    }     
+    public void OpenEsc(bool _isActive)
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            isOpenInven = _isActive ? false : true;
+            Cursor.visible = _isActive ?false: true;
+            Time.timeScale = 0;
+            escPanel.SetActive(isOpenInven);
         }
 
     }   
@@ -414,6 +460,7 @@ public class MonkeyMove : MonoBehaviour, IHittable
         if (Input.GetKeyDown(KeyCode.H))
         {
             isOpenTip = _isActive ? false : true;
+            Cursor.visible = _isActive ? false : true;
             tip.SetActive(isOpenTip);
         }
 
@@ -429,17 +476,15 @@ public class MonkeyMove : MonoBehaviour, IHittable
     public void PickItem()
     {
         RaycastHit raycastHit;
-        Ray ray = new Ray(transform.position, transform.forward);
-        //Debug.DrawRay(transform.position, transform.forward * 5, Color.red);
 
-        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out raycastHit, 50f, itemLayerMask))
-            //sif (Physics.Raycast(ray, out raycastHit, 5f, itemLayerMask))
+        if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out raycastHit, 10f, itemLayerMask))
         {
             _pickTxt.gameObject.SetActive(true);
             if (Input.GetKeyDown(KeyCode.F))
             {
                 ItemPickUp obj = raycastHit.collider.GetComponent<ItemPickUp>();
                 obj.PickUp();
+
             }
         }
         else
@@ -459,21 +504,21 @@ public class MonkeyMove : MonoBehaviour, IHittable
             yield break;
         }
         isDamaged = true;
-        Debug.Log(_hp);
+       // Debug.Log(_hp);
         _hp--;
 
         //hpBar.value -= 1;
-
+        SoundManager.Instance.PlaySE("플레이어 데미지");
         hpImage.fillAmount -= 1f / _maxHp; // 적데미지나누기맥스ㅇ헤이히피
-        Debug.Log(1 / _maxHp);
+      //  Debug.Log(1 / _maxHp);
         //   Debug.Log(hpBar.value);
         //hpBar.value = Mathf.Lerp(hpBar.value, _hp, Time.deltaTime * 10);
-        //cameraShake.ShakeCam(.15f, 1f);
+        cameraShake.ShakeCam(.15f, 1f);
         //  Instantiate(damageEffect, transform.position, Quaternion.identity);
         StartCoroutine(DamageHit());
         DamegaDotFeedback();
         PlayerHitFeedBack();
-        yield return new WaitForSeconds(5f);
+        yield return new WaitForSeconds(3.5f);
         isDamaged = false;
     }
     IEnumerator DamageHit()
@@ -484,9 +529,12 @@ public class MonkeyMove : MonoBehaviour, IHittable
     }
     public void Die()
     {
-        dieEvent?.Invoke();
+        //dieEvent?.Invoke();
+        isDie = true;
+        SoundManager.Instance.PlaySE("플레이어죽음");
+        Cursor.visible = true;
         Instantiate(dieEffect, transform.position, Quaternion.identity);
-        Time.timeScale = 0f;
+        Time.timeScale = 0;
     }
     public void PlayerHitFeedBack()
     {
@@ -502,12 +550,4 @@ public class MonkeyMove : MonoBehaviour, IHittable
        seq.Append( HpDot.transform.DOScale(new Vector3(1.2f, 1.2f, 1.2f), 0.2f));
         seq.Append(HpDot.transform.DOScale(Vector3.one, 0.2f));
     }
-    //private void HandleHP()
-    //{
-    //    hpBar.value = Mathf.Lerp(hpBar.value, _hp, Time.deltaTime * 10);
-    //}
-    //private void HandleNagodo()
-    //{
-    //    nagodoBar.value = Mathf.Lerp(nagodoBar.value, durability, Time.deltaTime * 10);
-    //}
 }

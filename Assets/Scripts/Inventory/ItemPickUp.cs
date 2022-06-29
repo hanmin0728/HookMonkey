@@ -8,6 +8,7 @@ public class ItemPickUp : MonoBehaviour
     public Item item;
     public void PickUp()
     {
+        SoundManager.Instance.PlaySE("æ∆¿Ã≈€");
         InventoryManager.Instance.Add(item);
         Destroy(gameObject);
     }

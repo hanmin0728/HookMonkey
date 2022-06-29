@@ -26,8 +26,10 @@ public class Timer : MonoBehaviour
         }
         else if (setTime <= 0)
         {
-            m.Die();
-            //m.Invoke("Die", 0.5f);
+            m.dieText.text = ($"Death reason: Timeout");
+            UIManager.Instance.OnDiePanel();
+            //m.Die();
+            m.Invoke("Die", 0.5f);
             Time.timeScale = 0f;
         }
         timer.text = ($"Å¸ÀÌ¸Ó: { Mathf.Round(setTime).ToString()}s");

@@ -162,7 +162,7 @@ GameObject:
   - component: {fileID: 2663832941347884442}
   - component: {fileID: 49989296}
   - component: {fileID: 6896872448952105360}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: bananaItem
   m_TagString: PlayerAtk
   m_Icon: {fileID: 0}

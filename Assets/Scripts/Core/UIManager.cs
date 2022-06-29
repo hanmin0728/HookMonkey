@@ -49,6 +49,7 @@ public class UIManager : MonoSingleton<UIManager>
     public void StageClearText()
     {
         clearTmp.SetActive(true);
+        Cursor.visible = true;
     }
     public void ClearTimeText()
     {
@@ -56,6 +57,14 @@ public class UIManager : MonoSingleton<UIManager>
         cleartime = timetime -= timer.setTime;
         clearTxt.text = ($"클리어까지 걸린 시간: {Mathf.Round(cleartime).ToString()}s");
         //clearTxt.DOText($"Clear하는데까지 걸린시간{ cleartime}", 0.5f);
+    }
+    public void CursorOn()
+    {
+        Cursor.visible = true;
+    } 
+    public void CursorOff()
+    {
+        Cursor.visible = false;
     }
 
 
