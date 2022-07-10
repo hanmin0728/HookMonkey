@@ -21214,6 +21214,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc7fdcb649d81c04186ca3af53ffec01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inventoryManager: {fileID: 1735996542}
   player: {fileID: 8979532466196319320}
 --- !u!4 &1465882763
 Transform:
@@ -55984,6 +55985,7 @@ GameObject:
   - component: {fileID: 8979532466196813993}
   - component: {fileID: 8979532466196813991}
   - component: {fileID: 8979532466196813995}
+  - component: {fileID: 8979532466196813997}
   m_Layer: 9
   m_Name: pl
   m_TagString: Player
@@ -56140,6 +56142,21 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &8979532466196813997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8979532466196813990}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3a65e2c851a06241b211988ec8d02c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _settingWindow: {fileID: 1656197851}
+  _invenWindow: {fileID: 5476444999591307177}
+  _tipWindow: {fileID: 1101198880052702576}
 --- !u!1 &8979532466196813998
 GameObject:
   m_ObjectHideFlags: 0

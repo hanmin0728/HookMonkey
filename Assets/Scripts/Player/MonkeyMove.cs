@@ -108,7 +108,6 @@ public class MonkeyMove : MonoBehaviour, IHittable
         cameraFOV = playerCamera.GetComponent<CameraFOV>();
         currnetItem = FindObjectOfType<ItemController>();
         speedLineParticleSystem = GameObject.Find("SpeedLineParticleSystem").GetComponent<ParticleSystem>();
-        // Cursor.lockState = CursorLockMode.Locked; 
        Cursor.visible = false;
         inventoryManager = GameObject.Find("InventoryManager").GetComponent<InventoryManager>();
         state = State.Normal;
@@ -147,9 +146,9 @@ public class MonkeyMove : MonoBehaviour, IHittable
         }
         PickItem();
          CanHo();
-        OpenTip(isOpenTip);
-        OpenInventory(isOpenInven);
-        OpenEsc(isOpenEsc);
+        //OpenTip(isOpenTip);
+        //OpenInventory(isOpenInven);
+        //OpenEsc(isOpenEsc);
         DownDieCheck();
         if (_hp <= 0)
         {
@@ -159,7 +158,7 @@ public class MonkeyMove : MonoBehaviour, IHittable
         }
         DownCheck();
         DurabilityCheck();
-        OpenCursor();
+        //OpenCursor();
     }
     public void DownCheck()
     {
@@ -421,50 +420,49 @@ public class MonkeyMove : MonoBehaviour, IHittable
             durTxt.gameObject.SetActive(false);
         }
     }    
-    public void OpenCursor()
-    {
-        if (Input.GetKey(KeyCode.LeftControl))
-        {
-            Cursor.visible = true;
-        }
-        else if (Input.GetKeyUp(KeyCode.LeftControl))
-        {
-            Cursor.visible = false;
-        }
-    }
-    public void OpenInventory(bool _isActive)
-    {
-        if (Input.GetKeyDown(KeyCode.Tab))
-        {
-            isOpenInven = _isActive ? false : true;
-            Cursor.visible = _isActive ?false: true;
+    //public void OpenCursor()
+    //{
+    //    if (Input.GetKey(KeyCode.LeftControl))
+    //    {
+    //        Cursor.visible = true;
+    //    }
+    //    else if (Input.GetKeyUp(KeyCode.LeftControl))
+    //    {
+    //        Cursor.visible = false;
+    //    }
+    //}
+    //public void OpenInventory(bool _isActive)
+    //{
+    //    if (Input.GetKeyDown(KeyCode.Tab))
+    //    {
+    //        isOpenInven = _isActive ? false : true;
+    //        Cursor.visible = _isActive ?false: true;
 
-            inventoryManager.ListItems();
-            inven.SetActive(isOpenInven);
-        }
+    //        inventoryManager.ListItems();
+    //        inven.SetActive(isOpenInven);
+    //    }
 
-    }     
-    public void OpenEsc(bool _isActive)
-    {
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            isOpenInven = _isActive ? false : true;
-            Cursor.visible = _isActive ?false: true;
-            Time.timeScale = 0;
-            escPanel.SetActive(isOpenInven);
-        }
+    //}     
+    //public void OpenEsc(bool _isActive)
+    //{
+    //    if (Input.GetKeyDown(KeyCode.Escape))
+    //    {
+    //        isOpenInven = _isActive ? false : true;
+    //        Cursor.visible = _isActive ?false: true;
+    //        Time.timeScale = 0;
+    //        escPanel.SetActive(isOpenInven);
+    //    }
 
-    }   
-    public void OpenTip(bool _isActive)
-    {
-        if (Input.GetKeyDown(KeyCode.H))
-        {
-            isOpenTip = _isActive ? false : true;
-            Cursor.visible = _isActive ? false : true;
-            tip.SetActive(isOpenTip);
-        }
-
-    }
+    //}   
+    //public void OpenTip(bool _isActive)
+    //{
+    //    if (Input.GetKeyDown(KeyCode.H))
+    //    {
+    //        isOpenTip = _isActive ? false : true;
+    //        Cursor.visible = _isActive ? false : true;
+    //        tip.SetActive(isOpenTip);
+    //    }
+    //}
     public void ChangeWeapon(Item item)
     {
         Debug.Log("½ÇÇàµÊ");

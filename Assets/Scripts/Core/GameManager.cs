@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class GameManager : MonoSingleton<GameManager>
 {
+    [SerializeField] private InventoryManager _inventoryManager;
+    public InventoryManager InventoryManager { get => _inventoryManager;}
+
+
     [SerializeField] private Transform player;
     public Transform Player { get { return player; } }
 
